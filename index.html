@@ -220,10 +220,7 @@
                 </div>
             </div>
 
-            <div>
-                <h3 class="font-semibold mb-4 text-lg">備註</h3>
-                <div id="pdfNotes" class="whitespace-pre-wrap"></div>
-            </div>
+            <div id="pdfNotesSection"></div>
         </div>
     </div>
 
@@ -324,7 +321,6 @@
             const pdfCompanyInfo = document.getElementById('pdfCompanyInfo');
             const pdfCustomerInfo = document.getElementById('pdfCustomerInfo');
             const pdfItemsList = document.getElementById('pdfItemsList');
-            const pdfNotes = document.getElementById('pdfNotes');
 
             // 公司資訊
             pdfCompanyInfo.innerHTML = `
@@ -366,7 +362,16 @@
             document.getElementById('pdfTotal').textContent = formatCurrency(total);
 
             // 備註
-            pdfNotes.textContent = document.getElementById('notes').value || '無';
+            const notesValue = document.getElementById('notes').value.trim();
+            const pdfNotesSection = document.getElementById('pdfNotesSection');
+            if (notesValue) {
+                pdfNotesSection.innerHTML = `
+                    <h3 class="font-semibold mb-4 text-lg">備註</h3>
+                    <div class="whitespace-pre-wrap">${notesValue}</div>
+                `;
+            } else {
+                pdfNotesSection.innerHTML = '';
+            }
         }
 
         function showPreview() {
@@ -435,10 +440,12 @@
                         </div>
                     </div>
 
+                    ${document.getElementById('notes').value.trim() ? `
                     <div>
                         <h3 class="font-semibold mb-4 text-lg">備註</h3>
-                        <div class="whitespace-pre-wrap">${document.getElementById('notes').value || '無'}</div>
+                        <div class="whitespace-pre-wrap">${document.getElementById('notes').value}</div>
                     </div>
+                    ` : ''}
                 </div>
             `;
             
