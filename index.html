@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>報價單系統</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <!-- 主要內容區域 -->
+            <div class="bg-white rounded-lg border border-gray-200 p-8 mb-8">
+                <!-- 標題區域 -->
+                <div class="text-center mb-12">
+                    <h1 class="text-3xl font-bold text-gray-800 mb-2">報價單</h1>
+                    <p class="text-gray-600">Quote System</p>
+                </div>
+
+                <!-- 公司資訊 -->
+                <div class="mb-10">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-semibold text-gray-800 border-b pb-2">公司資訊</h2>
+                        <div class="space-x-2">
+                            <button onclick="generateAndCopyCompanyHash()" id="generateBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-200">
+                                產生並複製連結
+                            </button>
+                        </div>
+                    </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">公司名稱</label>
+                        <input type="text" id="companyName" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="請輸入公司名稱">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">統一編號</label>
+                        <input type="text" id="taxId" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="請輸入統一編號">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">聯絡人</label>
+                        <input type="text" id="contactPerson" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="請輸入聯絡人">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">電話</label>
+                        <input type="text" id="phone" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="請輸入電話">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">地址</label>
+                        <input type="text" id="address" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="請輸入地址">
+                    </div>
+                    </div>
+                </div>
+
+                <!-- 客戶資訊 -->
+                <div class="mb-10">
+                    <h2 class="text-xl font-semibold mb-6 text-gray-800 border-b pb-2">客戶資訊</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">客戶名稱</label>
+                        <input type="text" id="customerName" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="請輸入客戶名稱">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">報價日期</label>
+                        <input type="date" id="quoteDate" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">報價單號</label>
+                        <input type="text" id="quoteNumber" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="請輸入報價單號">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">有效期限</label>
+                        <input type="date" id="validUntil" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    </div>
+                </div>
+
+                <!-- 項目明細 -->
+                <div class="mb-10">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-semibold text-gray-800 border-b pb-2">項目明細</h2>
+                        <button onclick="addItem()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition duration-200">
+                            新增項目
+                        </button>
+                    </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-2/5">項目</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">數量</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">單價</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">小計</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="itemsList" class="bg-white divide-y divide-gray-200">
+                            <!-- 項目會動態加入這裡 -->
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+
+                <!-- 金額計算 -->
+                <div class="mb-10">
+                    <h2 class="text-xl font-semibold mb-6 text-gray-800 border-b pb-2">金額計算</h2>
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-700">小計</span>
+                        <span id="subtotal" class="text-xl font-semibold">NT$ 0</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-700">營業稅 (5%)</span>
+                        <span id="tax" class="text-xl font-semibold">NT$ 0</span>
+                    </div>
+                    <div class="flex justify-between items-center border-t pt-4">
+                        <span class="text-xl font-bold text-gray-800">總計</span>
+                        <span id="total" class="text-2xl font-bold text-blue-600">NT$ 0</span>
+                    </div>
+                    </div>
+                </div>
+
+                <!-- 備註 -->
+                <div class="mb-10">
+                    <h2 class="text-xl font-semibold mb-6 text-gray-800 border-b pb-2">備註</h2>
+                    <textarea id="notes" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="請輸入備註事項"></textarea>
+                </div>
+
+                <!-- 預覽與匯出按鈕 -->
+                <div class="text-center space-x-4 pt-4">
+                    <button onclick="showPreview()" class="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 rounded-md text-lg font-semibold transition duration-200">
+                        預覽報價單
+                    </button>
+                    <button onclick="exportToPDF()" class="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-md text-lg font-semibold transition duration-200">
+                        匯出 PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-6 mt-12">
+        <div class="container mx-auto px-4">
+            <div class="text-center">
+                <p class="text-sm">© 2025 Oceanic Innovation. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 預覽模式覆蓋層 -->
+    <div id="previewOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+                <div class="sticky top-0 bg-white border-b border-gray-200 p-4 flex justify-between items-center">
+                    <h2 class="text-xl font-semibold">報價單預覽</h2>
+                    <div class="space-x-2">
+                        <button onclick="exportFromPreview()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md font-medium transition duration-200">
+                            匯出 PDF
+                        </button>
+                        <button onclick="closePreview()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md font-medium transition duration-200">
+                            關閉
+                        </button>
+                    </div>
+                </div>
+                <div id="previewContent" class="p-8">
+                    <!-- 預覽內容會在這裡動態生成 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PDF 預覽區域 (隱藏) -->
+    <div id="pdfContent" class="hidden">
+        <div class="max-w-4xl mx-auto p-8 bg-white">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold mb-2">報價單</h1>
+                <p class="text-gray-600">Quote</p>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-8 mb-8">
+                <div>
+                    <h3 class="font-semibold mb-4 text-lg">公司資訊</h3>
+                    <div id="pdfCompanyInfo" class="space-y-2"></div>
+                </div>
+                <div>
+                    <h3 class="font-semibold mb-4 text-lg">客戶資訊</h3>
+                    <div id="pdfCustomerInfo" class="space-y-2"></div>
+                </div>
+            </div>
+
+            <div class="mb-8">
+                <h3 class="font-semibold mb-4 text-lg">項目明細</h3>
+                <table class="w-full border-collapse border border-gray-300">
+                    <thead>
+                        <tr class="bg-gray-100">
+                            <th class="border border-gray-300 px-4 py-2 text-left w-2/5">項目</th>
+                            <th class="border border-gray-300 px-4 py-2 text-left w-16">數量</th>
+                            <th class="border border-gray-300 px-4 py-2 text-left w-24">單價</th>
+                            <th class="border border-gray-300 px-4 py-2 text-left w-24">小計</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pdfItemsList"></tbody>
+                </table>
+            </div>
+
+            <div class="mb-8 text-right">
+                <div class="space-y-2">
+                    <div>小計: <span id="pdfSubtotal"></span></div>
+                    <div>營業稅 (5%): <span id="pdfTax"></span></div>
+                    <div class="font-bold text-lg">總計: <span id="pdfTotal"></span></div>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="font-semibold mb-4 text-lg">備註</h3>
+                <div id="pdfNotes" class="whitespace-pre-wrap"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let items = [];
+        let itemCounter = 0;
+
+        // 設定今天的日期為預設值
+        document.getElementById('quoteDate').value = new Date().toISOString().split('T')[0];
+        
+        // 設定一個月後為預設有效期限
+        const nextMonth = new Date();
+        nextMonth.setMonth(nextMonth.getMonth() + 1);
+        document.getElementById('validUntil').value = nextMonth.toISOString().split('T')[0];
+
+        function addItem() {
+            itemCounter++;
+            const item = {
+                id: itemCounter,
+                name: '',
+                quantity: 1,
+                price: 0,
+                total: 0
+            };
+            items.push(item);
+            renderItems();
+        }
+
+        function removeItem(id) {
+            items = items.filter(item => item.id !== id);
+            renderItems();
+            calculateTotals();
+        }
+
+        function renderItems() {
+            const itemsList = document.getElementById('itemsList');
+            itemsList.innerHTML = '';
+
+            items.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-4 py-3">
+                        <input type="text" value="${item.name}" 
+                               onchange="updateItem(${item.id}, 'name', this.value)"
+                               class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500" 
+                               placeholder="項目名稱">
+                    </td>
+                    <td class="px-4 py-3">
+                        <input type="number" value="${item.quantity}" min="1"
+                               onchange="updateItem(${item.id}, 'quantity', parseFloat(this.value) || 1)"
+                               class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500">
+                    </td>
+                    <td class="px-4 py-3">
+                        <input type="number" value="${item.price}" min="0" step="0.01"
+                               onchange="updateItem(${item.id}, 'price', parseFloat(this.value) || 0)"
+                               class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500">
+                    </td>
+                    <td class="px-4 py-3 font-semibold">
+                        NT$ ${item.total.toLocaleString()}
+                    </td>
+                    <td class="px-4 py-3">
+                        <button onclick="removeItem(${item.id})" 
+                                class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition duration-200">
+                            刪除
+                        </button>
+                    </td>
+                `;
+                itemsList.appendChild(row);
+            });
+        }
+
+        function updateItem(id, field, value) {
+            const item = items.find(item => item.id === id);
+            if (item) {
+                item[field] = value;
+                item.total = item.quantity * item.price;
+                renderItems();
+                calculateTotals();
+            }
+        }
+
+        function calculateTotals() {
+            const subtotal = items.reduce((sum, item) => sum + item.total, 0);
+            const tax = subtotal * 0.05;
+            const total = subtotal + tax;
+
+            document.getElementById('subtotal').textContent = `NT$ ${subtotal.toLocaleString()}`;
+            document.getElementById('tax').textContent = `NT$ ${tax.toLocaleString()}`;
+            document.getElementById('total').textContent = `NT$ ${total.toLocaleString()}`;
+        }
+
+        function formatCurrency(amount) {
+            return `NT$ ${amount.toLocaleString()}`;
+        }
+
+        function preparePDFContent() {
+            // 準備 PDF 內容
+            const pdfCompanyInfo = document.getElementById('pdfCompanyInfo');
+            const pdfCustomerInfo = document.getElementById('pdfCustomerInfo');
+            const pdfItemsList = document.getElementById('pdfItemsList');
+            const pdfNotes = document.getElementById('pdfNotes');
+
+            // 公司資訊
+            pdfCompanyInfo.innerHTML = `
+                <div>公司名稱: ${document.getElementById('companyName').value || '未填寫'}</div>
+                <div>統一編號: ${document.getElementById('taxId').value || '未填寫'}</div>
+                <div>聯絡人: ${document.getElementById('contactPerson').value || '未填寫'}</div>
+                <div>電話: ${document.getElementById('phone').value || '未填寫'}</div>
+                <div>地址: ${document.getElementById('address').value || '未填寫'}</div>
+            `;
+
+            // 客戶資訊
+            pdfCustomerInfo.innerHTML = `
+                <div>客戶名稱: ${document.getElementById('customerName').value || '未填寫'}</div>
+                <div>報價日期: ${document.getElementById('quoteDate').value || '未填寫'}</div>
+                <div>報價單號: ${document.getElementById('quoteNumber').value || '未填寫'}</div>
+                <div>有效期限: ${document.getElementById('validUntil').value || '未填寫'}</div>
+            `;
+
+            // 項目明細
+            pdfItemsList.innerHTML = '';
+            items.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="border border-gray-300 px-4 py-2">${item.name}</td>
+                    <td class="border border-gray-300 px-4 py-2">${item.quantity}</td>
+                    <td class="border border-gray-300 px-4 py-2">${formatCurrency(item.price)}</td>
+                    <td class="border border-gray-300 px-4 py-2">${formatCurrency(item.total)}</td>
+                `;
+                pdfItemsList.appendChild(row);
+            });
+
+            // 計算總額
+            const subtotal = items.reduce((sum, item) => sum + item.total, 0);
+            const tax = subtotal * 0.05;
+            const total = subtotal + tax;
+
+            document.getElementById('pdfSubtotal').textContent = formatCurrency(subtotal);
+            document.getElementById('pdfTax').textContent = formatCurrency(tax);
+            document.getElementById('pdfTotal').textContent = formatCurrency(total);
+
+            // 備註
+            pdfNotes.textContent = document.getElementById('notes').value || '無';
+        }
+
+        function showPreview() {
+            // 直接在預覽區域建構內容，避免ID衝突
+            const previewContent = document.getElementById('previewContent');
+            
+            // 建構預覽內容
+            previewContent.innerHTML = `
+                <div class="max-w-4xl mx-auto p-8 bg-white">
+                    <div class="text-center mb-8">
+                        <h1 class="text-3xl font-bold mb-2">報價單</h1>
+                        <p class="text-gray-600">Quote</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-8 mb-8">
+                        <div>
+                            <h3 class="font-semibold mb-4 text-lg">公司資訊</h3>
+                            <div class="space-y-2">
+                                <div>公司名稱: ${document.getElementById('companyName').value || '未填寫'}</div>
+                                <div>統一編號: ${document.getElementById('taxId').value || '未填寫'}</div>
+                                <div>聯絡人: ${document.getElementById('contactPerson').value || '未填寫'}</div>
+                                <div>電話: ${document.getElementById('phone').value || '未填寫'}</div>
+                                <div>地址: ${document.getElementById('address').value || '未填寫'}</div>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold mb-4 text-lg">客戶資訊</h3>
+                            <div class="space-y-2">
+                                <div>客戶名稱: ${document.getElementById('customerName').value || '未填寫'}</div>
+                                <div>報價日期: ${document.getElementById('quoteDate').value || '未填寫'}</div>
+                                <div>報價單號: ${document.getElementById('quoteNumber').value || '未填寫'}</div>
+                                <div>有效期限: ${document.getElementById('validUntil').value || '未填寫'}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-8">
+                        <h3 class="font-semibold mb-4 text-lg">項目明細</h3>
+                        <table class="w-full border-collapse border border-gray-300">
+                            <thead>
+                                <tr class="bg-gray-100">
+                                    <th class="border border-gray-300 px-4 py-2 text-left w-2/5">項目</th>
+                                    <th class="border border-gray-300 px-4 py-2 text-left w-16">數量</th>
+                                    <th class="border border-gray-300 px-4 py-2 text-left w-24">單價</th>
+                                    <th class="border border-gray-300 px-4 py-2 text-left w-24">小計</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${items.map(item => `
+                                    <tr>
+                                        <td class="border border-gray-300 px-4 py-2">${item.name || '未填寫'}</td>
+                                        <td class="border border-gray-300 px-4 py-2">${item.quantity}</td>
+                                        <td class="border border-gray-300 px-4 py-2">${formatCurrency(item.price)}</td>
+                                        <td class="border border-gray-300 px-4 py-2">${formatCurrency(item.total)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mb-8 text-right">
+                        <div class="space-y-2">
+                            <div>小計: ${formatCurrency(items.reduce((sum, item) => sum + item.total, 0))}</div>
+                            <div>營業稅 (5%): ${formatCurrency(items.reduce((sum, item) => sum + item.total, 0) * 0.05)}</div>
+                            <div class="font-bold text-lg">總計: ${formatCurrency(items.reduce((sum, item) => sum + item.total, 0) * 1.05)}</div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="font-semibold mb-4 text-lg">備註</h3>
+                        <div class="whitespace-pre-wrap">${document.getElementById('notes').value || '無'}</div>
+                    </div>
+                </div>
+            `;
+            
+            // 顯示預覽覆蓋層
+            document.getElementById('previewOverlay').classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // 防止背景滾動
+        }
+
+        function closePreview() {
+            document.getElementById('previewOverlay').classList.add('hidden');
+            document.body.style.overflow = 'auto'; // 恢復滾動
+        }
+
+        function exportFromPreview() {
+            closePreview();
+            exportToPDF();
+        }
+
+        function exportToPDF() {
+            preparePDFContent();
+
+            // 使用 html2canvas 和 jsPDF 生成 PDF
+            const element = document.getElementById('pdfContent');
+            element.classList.remove('hidden');
+
+            html2canvas(element, {
+                scale: 2,
+                useCORS: true,
+                allowTaint: true
+            }).then(canvas => {
+                element.classList.add('hidden');
+                
+                const imgData = canvas.toDataURL('image/png');
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                
+                const imgWidth = 210;
+                const pageHeight = 295;
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                let heightLeft = imgHeight;
+                let position = 0;
+
+                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+
+                while (heightLeft >= 0) {
+                    position = heightLeft - imgHeight;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+                }
+
+                const fileName = document.getElementById('quoteNumber').value 
+                    ? `報價單_${document.getElementById('quoteNumber').value}.pdf`
+                    : '報價單.pdf';
+                
+                pdf.save(fileName);
+            }).catch(error => {
+                element.classList.add('hidden');
+                console.error('PDF 生成失敗:', error);
+                alert('PDF 生成失敗，請檢查瀏覽器設定');
+            });
+        }
+
+        // 公司資訊 hash 功能
+        function generateAndCopyCompanyHash() {
+            const companyInfo = {
+                name: document.getElementById('companyName').value,
+                taxId: document.getElementById('taxId').value,
+                contact: document.getElementById('contactPerson').value,
+                phone: document.getElementById('phone').value,
+                address: document.getElementById('address').value
+            };
+
+            // 檢查是否有填寫資訊
+            const hasData = Object.values(companyInfo).some(value => value.trim() !== '');
+            if (!hasData) {
+                alert('請先填寫公司資訊');
+                return;
+            }
+
+            // 使用 Base64 編碼
+            const jsonString = JSON.stringify(companyInfo);
+            const hash = btoa(encodeURIComponent(jsonString));
+            
+            // 生成 URL
+            const currentURL = new URL(window.location);
+            currentURL.searchParams.set('company', hash);
+            const urlString = currentURL.toString();
+            
+            // 直接複製到剪貼板
+            navigator.clipboard.writeText(urlString).then(() => {
+                // 暫時改變按鈕文字和顏色
+                const generateBtn = document.getElementById('generateBtn');
+                const originalText = generateBtn.textContent;
+                generateBtn.textContent = '已複製到剪貼板！';
+                generateBtn.classList.remove('bg-blue-500', 'hover:bg-blue-600');
+                generateBtn.classList.add('bg-green-500', 'hover:bg-green-600');
+                
+                setTimeout(() => {
+                    generateBtn.textContent = originalText;
+                    generateBtn.classList.remove('bg-green-500', 'hover:bg-green-600');
+                    generateBtn.classList.add('bg-blue-500', 'hover:bg-blue-600');
+                }, 2000);
+            }).catch(err => {
+                console.error('複製失敗:', err);
+                alert('複製失敗，請手動複製: ' + urlString);
+            });
+        }
+
+        function loadCompanyFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const companyHash = urlParams.get('company');
+            
+            if (companyHash) {
+                try {
+                    // 解碼 Base64
+                    const jsonString = decodeURIComponent(atob(companyHash));
+                    const companyInfo = JSON.parse(jsonString);
+                    
+                    // 填入資訊
+                    document.getElementById('companyName').value = companyInfo.name || '';
+                    document.getElementById('taxId').value = companyInfo.taxId || '';
+                    document.getElementById('contactPerson').value = companyInfo.contact || '';
+                    document.getElementById('phone').value = companyInfo.phone || '';
+                    document.getElementById('address').value = companyInfo.address || '';
+                    
+                } catch (error) {
+                    console.error('解碼公司資訊失敗:', error);
+                }
+            }
+        }
+
+        // ESC 鍵關閉預覽
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closePreview();
+            }
+        });
+
+        // 初始化
+        loadCompanyFromURL();
+        addItem(); // 預設新增一個空項目
+    </script>
+</body>
+</html>
