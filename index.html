@@ -180,32 +180,32 @@
 
     <!-- PDF 預覽區域 (隱藏) -->
     <div id="pdfContent" class="hidden">
-        <div class="max-w-4xl mx-auto p-8 bg-white">
+        <div class="max-w-5xl mx-auto p-4 bg-white" style="font-size: 18px;">
             <div class="text-center mb-8">
-                <h1 class="text-3xl font-bold mb-2">報價單</h1>
-                <p class="text-gray-600">Quote</p>
+                <h1 class="text-5xl font-bold mb-2">報價單</h1>
+                <p class="text-gray-600 text-2xl">Quote</p>
             </div>
             
             <div class="grid grid-cols-2 gap-8 mb-8">
                 <div>
-                    <h3 class="font-semibold mb-4 text-lg">公司資訊</h3>
-                    <div id="pdfCompanyInfo" class="space-y-2"></div>
+                    <h3 class="font-semibold mb-4 text-2xl">公司資訊</h3>
+                    <div id="pdfCompanyInfo" class="space-y-2 text-lg"></div>
                 </div>
                 <div>
-                    <h3 class="font-semibold mb-4 text-lg">客戶資訊</h3>
-                    <div id="pdfCustomerInfo" class="space-y-2"></div>
+                    <h3 class="font-semibold mb-4 text-2xl">客戶資訊</h3>
+                    <div id="pdfCustomerInfo" class="space-y-2 text-lg"></div>
                 </div>
             </div>
 
             <div class="mb-8">
-                <h3 class="font-semibold mb-4 text-lg">項目明細</h3>
+                <h3 class="font-semibold mb-4 text-2xl">項目明細</h3>
                 <table class="w-full border-collapse border border-gray-300">
                     <thead>
                         <tr class="bg-gray-100">
-                            <th class="border border-gray-300 px-4 py-2 text-left w-2/5">項目</th>
-                            <th class="border border-gray-300 px-4 py-2 text-left w-16">數量</th>
-                            <th class="border border-gray-300 px-4 py-2 text-left w-24">單價</th>
-                            <th class="border border-gray-300 px-4 py-2 text-left w-24">小計</th>
+                            <th class="border border-gray-300 px-4 py-3 text-left w-2/5 text-lg">項目</th>
+                            <th class="border border-gray-300 px-4 py-3 text-left w-16 text-lg">數量</th>
+                            <th class="border border-gray-300 px-4 py-3 text-left w-24 text-lg">單價</th>
+                            <th class="border border-gray-300 px-4 py-3 text-left w-24 text-lg">小計</th>
                         </tr>
                     </thead>
                     <tbody id="pdfItemsList"></tbody>
@@ -213,10 +213,10 @@
             </div>
 
             <div class="mb-8 text-right">
-                <div class="space-y-2">
+                <div class="space-y-2 text-lg">
                     <div>小計: <span id="pdfSubtotal"></span></div>
                     <div>營業稅 (5%): <span id="pdfTax"></span></div>
-                    <div class="font-bold text-lg">總計: <span id="pdfTotal"></span></div>
+                    <div class="font-bold text-2xl">總計: <span id="pdfTotal"></span></div>
                 </div>
             </div>
 
@@ -344,10 +344,10 @@
             items.forEach(item => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td class="border border-gray-300 px-4 py-2">${item.name}</td>
-                    <td class="border border-gray-300 px-4 py-2">${item.quantity}</td>
-                    <td class="border border-gray-300 px-4 py-2">${formatCurrency(item.price)}</td>
-                    <td class="border border-gray-300 px-4 py-2">${formatCurrency(item.total)}</td>
+                    <td class="border border-gray-300 px-4 py-3 text-lg">${item.name}</td>
+                    <td class="border border-gray-300 px-4 py-3 text-lg">${item.quantity}</td>
+                    <td class="border border-gray-300 px-4 py-3 text-lg">${formatCurrency(item.price)}</td>
+                    <td class="border border-gray-300 px-4 py-3 text-lg">${formatCurrency(item.total)}</td>
                 `;
                 pdfItemsList.appendChild(row);
             });
@@ -366,8 +366,8 @@
             const pdfNotesSection = document.getElementById('pdfNotesSection');
             if (notesValue) {
                 pdfNotesSection.innerHTML = `
-                    <h3 class="font-semibold mb-4 text-lg">備註</h3>
-                    <div class="whitespace-pre-wrap">${notesValue}</div>
+                    <h3 class="font-semibold mb-4 text-2xl">備註</h3>
+                    <div class="whitespace-pre-wrap text-lg">${notesValue}</div>
                 `;
             } else {
                 pdfNotesSection.innerHTML = '';
@@ -474,13 +474,15 @@
             html2canvas(element, {
                 scale: 2,
                 useCORS: true,
-                allowTaint: true
+                allowTaint: true,
+                logging: false,
+                imageTimeout: 0
             }).then(canvas => {
                 element.classList.add('hidden');
                 
-                const imgData = canvas.toDataURL('image/png');
+                const imgData = canvas.toDataURL('image/jpeg', 0.8);
                 const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdf = new jsPDF('p', 'mm', 'a4', true);
                 
                 const imgWidth = 210;
                 const pageHeight = 295;
@@ -488,13 +490,13 @@
                 let heightLeft = imgHeight;
                 let position = 0;
 
-                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
                 heightLeft -= pageHeight;
 
                 while (heightLeft >= 0) {
                     position = heightLeft - imgHeight;
                     pdf.addPage();
-                    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                    pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
                     heightLeft -= pageHeight;
                 }
 
