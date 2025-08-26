@@ -2,6 +2,8 @@
 
 一個簡潔易用的報價單生成系統，專為台灣商業環境設計，支援 5% 營業稅計算和 PDF 匯出功能。
 
+可以從這裡直接使用: [https://quotable.oceaninnov.com/](https://quotable.oceaninnov.com/)
+
 ## 功能特色
 
 ### 📋 完整報價單功能
